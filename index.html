@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var LINE_COUNT = 200;
+    var SPEED = 2;
+    var GENERAL_MOTION_EFFECT = 0;
+    var DEG_RANGE = Math.PI / 20;
+    var COLOR_SPEED = 3;
+    var canvas = document.querySelector("#canvas");
+    var ctx = canvas.getContext('2d');
+    var lines = [];
+    var color = 0;
+    var generalVector = {x: 1, y:0};
+
+    ctx.fillStyle = 'black';
+
+    function initCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        lines = [];
+        for(var i=0; i<LINE_COUNT; i++) {
+            lines.push(new Line());
+        }
+        drawLines();
+    }
+    function drawLines() {
+        if(!lines.length) return;
+        changeColor();
+        rotateVector();
+        for (var i=0; i<lines.length; i++) {
+            if(!lines[i].lineNext()) {
+                lines.splice(i, 1);
+            }
+        }
+        requestAnimationFrame(drawLines);
+    }
+    function changeColor() {
+        color = (color + random(0, COLOR_SPEED) + 360) % 360;
+    }
+    function rotateVector() {
+        var deg = random(-DEG_RANGE, DEG_RANGE);
+        generalVector = rotation(generalVector.x, generalVector.y, deg);
+
+    }
+    function random(min, max) {
+        return Math.random() * (max-min) + min;
+    }
+    function distance(x1, y1, x2 = 0, y2 = 0) {
+        return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+    }
+    function rotation(x, y, deg) {
+        return {
+            x: x * Math.cos(deg) - y * Math.sin(deg),
+            y: x * Math.sin(deg) + y * Math.cos(deg)
+        }
+    }
+
+    function toColor(color) {
+        return 'hsl('+color+',80%,50%)';
+    }
+    function Line() {
+
+        this.prepare = function() {
+            ctx.beginPath();
+            ctx.globalAlpha = .8;
+            ctx.strokeStyle = toColor(color);
+            ctx.strokeWidth = 2;
+            ctx.moveTo(this.x, this.y);
+        };
+        this.draw = function () {
+            ctx.lineTo(this.x, this.y);
+            ctx.stroke();
+            ctx.closePath();
+        };
+        this.unitVector = function() {
+            var d = distance(this.x, this.y, this.prevX, this.prevY);
+            return {
+                x: (this.x - this.prevX)/d,
+                y: (this.y - this.prevY)/d
+            }
+        };
+
+        this.prevX = canvas.width / 2;
+        this.prevY = canvas.height / 2;
+        this.x = canvas.width / 2;
+        this.y = canvas.height / 2;
+        this.prepare();
+        var deg = random(0, Math.PI * 2);
+        var vec = rotation(SPEED, 0, deg);
+        this.x = canvas.width / 2 + vec.x;
+        this.y = canvas.height / 2 + vec.y;
+        this.draw();
+
+        this.lineNext = function() {
+            this.prepare();
+
+            var unit = this.unitVector();
+            var deg = random(-DEG_RANGE, DEG_RANGE);
+            var vec = rotation(unit.x * SPEED, unit.y * SPEED, deg);
+            this.prevX = this.x;
+            this.prevY = this.y;
+            this.x += vec.x + generalVector.x * GENERAL_MOTION_EFFECT;
+            this.y += vec.y + generalVector.y * GENERAL_MOTION_EFFECT;
+
+            this.draw();
+
+            return !(this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0);
+        }
+    }
+
+    window.addEventListener('resize', initCanvas);
+    canvas.addEventListener('click', initCanvas);
+    initCanvas();
+</script>
+</body>
+</html>
