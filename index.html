@@ -10,19 +10,54 @@
         }
         canvas {
             display: block;
+            background-color: black;
+        }
+        .settings {
+            position: absolute;
+            width: 280px;
+            background-color: #ffffff88;
+            border-radius: 40px;
+            -moz-border-radius: 40px;
+            -webkit-border-radius: 40px;
+            bottom: 20px;
+            right: 20px;
+            padding: 40px;
+            font-family: sans-serif;
+        }
+        label {
+            display: block;
         }
     </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
+<form class="settings">
+    <label>
+        Line Count:
+        <input id="lines-num" name="lines-num" type="range" min="10" max="800" step="10" value="1200"
+               oninput="countLabel.innerText=this.value;"
+               onchange="LINE_COUNT = this.value;initCanvas()"/>
+        <span id="count-label">800</span>
+    </label>
+    <label>
+        Line Width:
+        <input id="lines-width" name="lines-width" type="range" min="1" max="10" step="1" value="1"
+               oninput="widthLabel.innerText=this.value;"
+               onchange="LINE_WIDTH = this.value;initCanvas()"/>
+        <span id="width-label">1</span>
+    </label>
+</form>
 <script>
-    var LINE_COUNT = 200;
+    var LINE_COUNT = 800;
+    var LINE_WIDTH = 1;
     var SPEED = 2;
     var GENERAL_MOTION_EFFECT = 0;
     var DEG_RANGE = Math.PI / 20;
     var COLOR_SPEED = 3;
     var canvas = document.querySelector("#canvas");
     var ctx = canvas.getContext('2d');
+    var countLabel = document.querySelector('#count-label');
+    var widthLabel = document.querySelector('#width-label');
     var lines = [];
     var color = random(0, 360);
     var generalVector = {x: 1, y:0};
@@ -33,7 +68,7 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillText("Yosef Tukachinsky", canvas.width/2, canvas.height/2);
         lines = [];
         for(var i=0; i<LINE_COUNT; i++) {
             lines.push(new Line());
@@ -79,9 +114,10 @@
 
         this.prepare = function() {
             ctx.beginPath();
+            ctx.globalCompositeOperation = 'screen';
             ctx.globalAlpha = .8;
             ctx.strokeStyle = toColor(color);
-            ctx.strokeWidth = 2;
+            ctx.lineWidth = LINE_WIDTH;
             ctx.moveTo(this.x, this.y);
         };
         this.draw = function () {
